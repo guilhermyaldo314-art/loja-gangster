@@ -10,15 +10,16 @@ h1,h2,h3{margin:0;padding:0;color:#f0a500;}
 header,section{padding:20px;}
 button{cursor:pointer;font-weight:bold;border:none;border-radius:5px;}
 button:hover{opacity:0.8;}
+input[type=text], input[type=number], input[type=password]{padding:5px;margin-right:5px;border-radius:5px;border:none;}
+
 /* ===== LAYOUT ===== */
 #interface-comprador,#interface-dev{display:none;}
 #produtos .produto{border:1px solid #fff;margin:10px 0;padding:15px;display:flex;justify-content:space-between;align-items:center;}
-#historico{background:#222;padding:10px;max-height:300px;overflow:auto;white-space:pre-wrap;}
+#historico,#historico-global{background:#222;padding:10px;max-height:300px;overflow:auto;}
 #dashboard{margin-top:20px;border-top:2px solid #f0a500;padding-top:10px;}
 #login{padding:20px;}
-input[type=password]{padding:5px;margin-right:5px;border-radius:5px;border:none;}
-/* ===== ALERTAS ===== */
 #alerta{position:fixed;top:10px;right:10px;background:#f0a500;color:#000;padding:10px 15px;border-radius:5px;display:none;font-weight:bold;box-shadow:0 0 10px #fff;}
+.historico-item{border-bottom:1px solid #444;padding:5px 0;margin-bottom:5px;}
 </style>
 </head>
 <body>
@@ -34,12 +35,17 @@ input[type=password]{padding:5px;margin-right:5px;border-radius:5px;border:none;
 <button onclick="logarDev()">Entrar</button>
 </div>
 
+<!-- BOTÃO PARA CLIENTE -->
+<div id="entrarClienteContainer" style="padding:20px;">
+<button id="entrarCliente" onclick="entrarCliente()">Entrar como Cliente</button>
+</div>
+
 <!-- INTERFACE COMPRADOR -->
 <section id="interface-comprador">
 <h2>Produtos Disponíveis</h2>
 <div id="produtos"></div>
 <h2>Meu Histórico</h2>
-<pre id="historico"></pre>
+<div id="historico"></div>
 </section>
 
 <!-- INTERFACE DEV -->
@@ -48,7 +54,7 @@ input[type=password]{padding:5px;margin-right:5px;border-radius:5px;border:none;
 <p>Total de vendas: <span id="total-vendas">0</span></p>
 <p>Total faturado: R$ <span id="total-faturado">0</span></p>
 <h3>Histórico Global</h3>
-<pre id="historico-global"></pre>
+<div id="historico-global"></div>
 <h3>Adicionar Produto</h3>
 <input type="text" id="novo-nome" placeholder="Nome do Produto"/>
 <input type="number" id="novo-preco" placeholder="Preço"/>
@@ -58,9 +64,9 @@ input[type=password]{padding:5px;margin-right:5px;border-radius:5px;border:none;
 <div id="alerta"></div>
 
 <script>
-/* ===== VARIÁVEIS ===== */
+// ===== VARIÁVEIS =====
 let produtos = [
-  {nome:"Produto A", preco:100},
+  {nome:"Turbina", preco:5000},
   {nome:"Produto B", preco:200},
   {nome:"Produto C", preco:300},
   {nome:"Produto D", preco:400}
@@ -68,7 +74,7 @@ let produtos = [
 
 let vendas = [];
 
-/* ===== FUNÇÃO DE ALERTA ===== */
+// ===== FUNÇÃO DE ALERTA =====
 function showAlerta(msg){
   const alerta = document.getElementById("alerta");
   alerta.innerText = msg;
@@ -76,11 +82,12 @@ function showAlerta(msg){
   setTimeout(()=>{alerta.style.display="none";},2000);
 }
 
-/* ===== FUNÇÕES DE LOGIN ===== */
+// ===== FUNÇÕES DE LOGIN =====
 function logarDev(){
   const senha = document.getElementById("senhaDev").value;
   if(senha==="gangster123"){ // senha dev
     document.getElementById("login").style.display="none";
+    document.getElementById("entrarClienteContainer").style.display="none";
     document.getElementById("interface-dev").style.display="block";
     renderProdutos();
     atualizarDashboard();
@@ -90,7 +97,15 @@ function logarDev(){
   }
 }
 
-/* ===== FUNÇÃO PARA RENDERIZAR PRODUTOS ===== */
+function entrarCliente(){
+  document.getElementById("login").style.display="none";
+  document.getElementById("entrarClienteContainer").style.display="none";
+  document.getElementById("interface-comprador").style.display="block";
+  renderProdutos();
+  atualizarHistoricoComprador();
+}
+
+// ===== FUNÇÃO PARA RENDERIZAR PRODUTOS =====
 function renderProdutos(){
   const div = document.getElementById("produtos");
   div.innerHTML="";
@@ -105,7 +120,7 @@ function renderProdutos(){
   });
 }
 
-/* ===== FUNÇÃO COMPRAR ===== */
+// ===== FUNÇÃO COMPRAR =====
 function comprarProduto(indice){
   const produto = produtos[indice];
   const venda = {
@@ -118,23 +133,52 @@ function comprarProduto(indice){
   showAlerta(`Compra realizada: ${produto.nome}`);
   atualizarDashboard();
   atualizarHistoricoComprador();
+  atualizarHistoricoDev();
 }
 
-/* ===== FUNÇÕES DE DASHBOARD ===== */
+// ===== FUNÇÕES DE DASHBOARD =====
 function atualizarDashboard(){
   document.getElementById("total-vendas").innerText = vendas.length;
   const total = vendas.reduce((soma,v)=>soma+v.preco,0);
   document.getElementById("total-faturado").innerText = total;
-  document.getElementById("historico-global").textContent = JSON.stringify(vendas,null,2);
+  atualizarHistoricoDev();
 }
 
-/* ===== FUNÇÃO HISTÓRICO COMPRADOR ===== */
+// ===== FUNÇÃO HISTÓRICO COMPRADOR =====
 function atualizarHistoricoComprador(){
-  const historicoComprador = vendas.filter(v=>v.comprador==="Cliente Anônimo");
-  document.getElementById("historico").textContent = JSON.stringify(historicoComprador,null,2);
+  const historicoDiv = document.getElementById("historico");
+  historicoDiv.innerHTML="";
+  const historicoComprador = vendas.filter(v => v.comprador==="Cliente Anônimo");
+  historicoComprador.forEach(v=>{
+    const div = document.createElement("div");
+    div.className="historico-item";
+    div.innerHTML=`
+      <strong>Produto:</strong> ${v.produto} <br>
+      <strong>Preço:</strong> R$ ${v.preco} <br>
+      <strong>Data:</strong> ${v.data}
+    `;
+    historicoDiv.appendChild(div);
+  });
 }
 
-/* ===== FUNÇÃO ADICIONAR PRODUTO ===== */
+// ===== FUNÇÃO HISTÓRICO DEV =====
+function atualizarHistoricoDev(){
+  const div = document.getElementById("historico-global");
+  div.innerHTML="";
+  vendas.forEach(v=>{
+    const item = document.createElement("div");
+    item.className="historico-item";
+    item.innerHTML=`
+      <strong>Produto:</strong> ${v.produto} <br>
+      <strong>Preço:</strong> R$ ${v.preco} <br>
+      <strong>Data:</strong> ${v.data} <br>
+      <strong>Comprador:</strong> ${v.comprador}
+    `;
+    div.appendChild(item);
+  });
+}
+
+// ===== FUNÇÃO ADICIONAR PRODUTO =====
 function adicionarProduto(){
   const nome = document.getElementById("novo-nome").value;
   const preco = Number(document.getElementById("novo-preco").value);
@@ -149,18 +193,11 @@ function adicionarProduto(){
   }
 }
 
-/* ===== INTERFACE CLIENTE VISUALIZAÇÃO ===== */
-document.getElementById("login").insertAdjacentHTML("afterend",
-  `<button id="entrarCliente" onclick="entrarCliente()">Entrar como Cliente</button>`
-);
-
-function entrarCliente(){
-  document.getElementById("login").style.display="none";
-  document.getElementById("entrarCliente").style.display="none";
-  document.getElementById("interface-comprador").style.display="block";
-  renderProdutos();
-  atualizarHistoricoComprador();
-}
+// ===== INICIALIZAÇÃO =====
+renderProdutos();
+atualizarHistoricoComprador();
+atualizarHistoricoDev();
 </script>
+
 </body>
 </html>
