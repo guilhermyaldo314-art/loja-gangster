@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Loja Gangster</title>
+<style>
+body{
+  font-family:Arial,sans-serif;
+  background:#111;
+  color:#fff;
+  margin:20px;
+}
+h1,h2{ color:#f0a500; }
+.produto{
+  border:1px solid #fff;
+  padding:10px;
+  margin:10px 0;
+}
+button{
+  background:#f0a500;
+  border:none;
+  padding:5px 10px;
+  cursor:pointer;
+  color:#000;
+}
+button:hover{ background:#ffa500; }
+pre{
+  background:#222;
+  padding:10px;
+  max-height:300px;
+  overflow:auto;
+}
+</style>
+</head>
+<body>
+
+<h1>Loja Gangster</h1>
+
+<div id="produtos">
+  <div class="produto" data-nome="Produto A" data-preco="100">
+    <h3>Produto A</h3>
+    <p>Preço: R$ 100</p>
+    <button onclick="comprar('Produto A',100)">Comprar</button>
+  </div>
+  <div class="produto" data-nome="Produto B" data-preco="200">
+    <h3>Produto B</h3>
+    <p>Preço: R$ 200</p>
+    <button onclick="comprar('Produto B',200)">Comprar</button>
+  </div>
+  <div class="produto" data-nome="Produto C" data-preco="300">
+    <h3>Produto C</h3>
+    <p>Preço: R$ 300</p>
+    <button onclick="comprar('Produto C',300)">Comprar</button>
+  </div>
+</div>
+
+<h2>Histórico de Vendas</h2>
+<pre id="historico"></pre>
+
+<script>
+// Histórico em memória (igual loop gangster do jogo)
+let vendas = []
+
+function atualizarHistorico(){
+  document.getElementById('historico').textContent = JSON.stringify(vendas,null,2)
+}
+
+function comprar(nome, preco){
+  const venda = {
+    produto: nome,
+    preco: preco,
+    data: new Date().toLocaleString()
+  }
+  vendas.push(venda)
+  atualizarHistorico()
+  alert('Compra realizada: ' + nome)
+}
+
+// Inicializa histórico
+atualizarHistorico()
+
+</script>
+</body>
+</html>
