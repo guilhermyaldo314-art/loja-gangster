@@ -2,28 +2,42 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Loja Gangster</title>
+<title>Loja Gangster Profissional</title>
 <style>
 body{
-  font-family:Arial,sans-serif;
+  font-family: Arial, sans-serif;
   background:#111;
   color:#fff;
   margin:20px;
 }
-h1,h2{ color:#f0a500; }
-.produto{
+header h1{
+  color:#f0a500;
+  text-align:center;
+}
+#produtos .produto{
   border:1px solid #fff;
-  padding:10px;
+  padding:15px;
   margin:10px 0;
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
 }
 button{
   background:#f0a500;
   border:none;
-  padding:5px 10px;
+  padding:8px 15px;
   cursor:pointer;
   color:#000;
+  font-weight:bold;
 }
-button:hover{ background:#ffa500; }
+button:hover{
+  background:#ffa500;
+}
+#dashboard{
+  margin-top:30px;
+  border-top:2px solid #f0a500;
+  padding-top:10px;
+}
 pre{
   background:#222;
   padding:10px;
@@ -34,37 +48,52 @@ pre{
 </head>
 <body>
 
-<h1>Loja Gangster</h1>
+<header>
+  <h1>Loja Gangster</h1>
+</header>
 
-<div id="produtos">
-  <div class="produto" data-nome="Produto A" data-preco="100">
-    <h3>Produto A</h3>
-    <p>Preço: R$ 100</p>
-    <button onclick="comprar('Produto A',100)">Comprar</button>
-  </div>
-  <div class="produto" data-nome="Produto B" data-preco="200">
-    <h3>Produto B</h3>
-    <p>Preço: R$ 200</p>
-    <button onclick="comprar('Produto B',200)">Comprar</button>
-  </div>
-  <div class="produto" data-nome="Produto C" data-preco="300">
-    <h3>Produto C</h3>
-    <p>Preço: R$ 300</p>
-    <button onclick="comprar('Produto C',300)">Comprar</button>
-  </div>
-</div>
+<section id="produtos">
+  <!-- Produtos adicionados pelo JS -->
+</section>
 
-<h2>Histórico de Vendas</h2>
-<pre id="historico"></pre>
+<section id="dashboard">
+  <h2>Dashboard</h2>
+  <p>Total vendas: <span id="total-vendas">0</span></p>
+  <p>Últimas vendas:</p>
+  <pre id="historico"></pre>
+</section>
 
 <script>
-// Histórico em memória (igual loop gangster do jogo)
+// Lista de produtos
+const produtos = [
+  {nome:"Produto A", preco:100},
+  {nome:"Produto B", preco:200},
+  {nome:"Produto C", preco:300},
+  {nome:"Produto D", preco:400}
+]
+
+// Histórico em memória
 let vendas = []
 
-function atualizarHistorico(){
-  document.getElementById('historico').textContent = JSON.stringify(vendas,null,2)
+// Inicializa produtos na tela
+const produtosDiv = document.getElementById("produtos")
+produtos.forEach(p => {
+  const div = document.createElement("div")
+  div.classList.add("produto")
+  div.innerHTML = `
+    <span>${p.nome} - R$ ${p.preco}</span>
+    <button onclick="comprar('${p.nome}',${p.preco})">Comprar</button>
+  `
+  produtosDiv.appendChild(div)
+})
+
+// Atualiza dashboard
+function atualizarDashboard(){
+  document.getElementById("total-vendas").innerText = vendas.length
+  document.getElementById("historico").textContent = JSON.stringify(vendas,null,2)
 }
 
+// Função de compra
 function comprar(nome, preco){
   const venda = {
     produto: nome,
@@ -72,13 +101,13 @@ function comprar(nome, preco){
     data: new Date().toLocaleString()
   }
   vendas.push(venda)
-  atualizarHistorico()
-  alert('Compra realizada: ' + nome)
+  atualizarDashboard()
+  alert(`Compra realizada: ${nome}`)
 }
 
-// Inicializa histórico
-atualizarHistorico()
-
+// Inicializa dashboard
+atualizarDashboard()
 </script>
+
 </body>
 </html>
