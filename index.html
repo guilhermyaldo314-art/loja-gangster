@@ -4,110 +4,163 @@
 <meta charset="UTF-8">
 <title>Loja Gangster Profissional</title>
 <style>
-body{
-  font-family: Arial, sans-serif;
-  background:#111;
-  color:#fff;
-  margin:20px;
-}
-header h1{
-  color:#f0a500;
-  text-align:center;
-}
-#produtos .produto{
-  border:1px solid #fff;
-  padding:15px;
-  margin:10px 0;
-  display:flex;
-  justify-content: space-between;
-  align-items:center;
-}
-button{
-  background:#f0a500;
-  border:none;
-  padding:8px 15px;
-  cursor:pointer;
-  color:#000;
-  font-weight:bold;
-}
-button:hover{
-  background:#ffa500;
-}
-#dashboard{
-  margin-top:30px;
-  border-top:2px solid #f0a500;
-  padding-top:10px;
-}
-pre{
-  background:#222;
-  padding:10px;
-  max-height:300px;
-  overflow:auto;
-}
+/* ===== RESET E ESTILO BASE ===== */
+body{margin:0;padding:0;font-family:Arial,sans-serif;background:#111;color:#fff;}
+h1,h2,h3{margin:0;padding:0;color:#f0a500;}
+header,section{padding:20px;}
+button{cursor:pointer;font-weight:bold;border:none;border-radius:5px;}
+button:hover{opacity:0.8;}
+/* ===== LAYOUT ===== */
+#interface-comprador,#interface-dev{display:none;}
+#produtos .produto{border:1px solid #fff;margin:10px 0;padding:15px;display:flex;justify-content:space-between;align-items:center;}
+#historico{background:#222;padding:10px;max-height:300px;overflow:auto;white-space:pre-wrap;}
+#dashboard{margin-top:20px;border-top:2px solid #f0a500;padding-top:10px;}
+#login{padding:20px;}
+input[type=password]{padding:5px;margin-right:5px;border-radius:5px;border:none;}
+/* ===== ALERTAS ===== */
+#alerta{position:fixed;top:10px;right:10px;background:#f0a500;color:#000;padding:10px 15px;border-radius:5px;display:none;font-weight:bold;box-shadow:0 0 10px #fff;}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Loja Gangster</h1>
+<h1>Loja Gangster Profissional</h1>
 </header>
 
-<section id="produtos">
-  <!-- Produtos adicionados pelo JS -->
+<!-- LOGIN PARA ACESSO DEV -->
+<div id="login">
+<label>Senha Dev:</label>
+<input type="password" id="senhaDev" placeholder="Digite a senha"/>
+<button onclick="logarDev()">Entrar</button>
+</div>
+
+<!-- INTERFACE COMPRADOR -->
+<section id="interface-comprador">
+<h2>Produtos Disponíveis</h2>
+<div id="produtos"></div>
+<h2>Meu Histórico</h2>
+<pre id="historico"></pre>
 </section>
 
-<section id="dashboard">
-  <h2>Dashboard</h2>
-  <p>Total vendas: <span id="total-vendas">0</span></p>
-  <p>Últimas vendas:</p>
-  <pre id="historico"></pre>
+<!-- INTERFACE DEV -->
+<section id="interface-dev">
+<h2>Dashboard do Dev</h2>
+<p>Total de vendas: <span id="total-vendas">0</span></p>
+<p>Total faturado: R$ <span id="total-faturado">0</span></p>
+<h3>Histórico Global</h3>
+<pre id="historico-global"></pre>
+<h3>Adicionar Produto</h3>
+<input type="text" id="novo-nome" placeholder="Nome do Produto"/>
+<input type="number" id="novo-preco" placeholder="Preço"/>
+<button onclick="adicionarProduto()">Adicionar Produto</button>
 </section>
+
+<div id="alerta"></div>
 
 <script>
-// Lista de produtos
-const produtos = [
+/* ===== VARIÁVEIS ===== */
+let produtos = [
   {nome:"Produto A", preco:100},
   {nome:"Produto B", preco:200},
   {nome:"Produto C", preco:300},
   {nome:"Produto D", preco:400}
-]
+];
 
-// Histórico em memória
-let vendas = []
+let vendas = [];
 
-// Inicializa produtos na tela
-const produtosDiv = document.getElementById("produtos")
-produtos.forEach(p => {
-  const div = document.createElement("div")
-  div.classList.add("produto")
-  div.innerHTML = `
-    <span>${p.nome} - R$ ${p.preco}</span>
-    <button onclick="comprar('${p.nome}',${p.preco})">Comprar</button>
-  `
-  produtosDiv.appendChild(div)
-})
-
-// Atualiza dashboard
-function atualizarDashboard(){
-  document.getElementById("total-vendas").innerText = vendas.length
-  document.getElementById("historico").textContent = JSON.stringify(vendas,null,2)
+/* ===== FUNÇÃO DE ALERTA ===== */
+function showAlerta(msg){
+  const alerta = document.getElementById("alerta");
+  alerta.innerText = msg;
+  alerta.style.display = "block";
+  setTimeout(()=>{alerta.style.display="none";},2000);
 }
 
-// Função de compra
-function comprar(nome, preco){
-  const venda = {
-    produto: nome,
-    preco: preco,
-    data: new Date().toLocaleString()
+/* ===== FUNÇÕES DE LOGIN ===== */
+function logarDev(){
+  const senha = document.getElementById("senhaDev").value;
+  if(senha==="gangster123"){ // senha dev
+    document.getElementById("login").style.display="none";
+    document.getElementById("interface-dev").style.display="block";
+    renderProdutos();
+    atualizarDashboard();
+  }else{
+    alert("Senha incorreta! Acesso negado.");
+    document.getElementById("senhaDev").value="";
   }
-  vendas.push(venda)
-  atualizarDashboard()
-  alert(`Compra realizada: ${nome}`)
 }
 
-// Inicializa dashboard
-atualizarDashboard()
-</script>
+/* ===== FUNÇÃO PARA RENDERIZAR PRODUTOS ===== */
+function renderProdutos(){
+  const div = document.getElementById("produtos");
+  div.innerHTML="";
+  produtos.forEach((p,i)=>{
+    const prodDiv = document.createElement("div");
+    prodDiv.className="produto";
+    prodDiv.innerHTML=`
+      <span>${p.nome} - R$ ${p.preco}</span>
+      <button onclick="comprarProduto(${i})">Comprar</button>
+    `;
+    div.appendChild(prodDiv);
+  });
+}
 
+/* ===== FUNÇÃO COMPRAR ===== */
+function comprarProduto(indice){
+  const produto = produtos[indice];
+  const venda = {
+    produto: produto.nome,
+    preco: produto.preco,
+    data: new Date().toLocaleString(),
+    comprador: "Cliente Anônimo"
+  };
+  vendas.push(venda);
+  showAlerta(`Compra realizada: ${produto.nome}`);
+  atualizarDashboard();
+  atualizarHistoricoComprador();
+}
+
+/* ===== FUNÇÕES DE DASHBOARD ===== */
+function atualizarDashboard(){
+  document.getElementById("total-vendas").innerText = vendas.length;
+  const total = vendas.reduce((soma,v)=>soma+v.preco,0);
+  document.getElementById("total-faturado").innerText = total;
+  document.getElementById("historico-global").textContent = JSON.stringify(vendas,null,2);
+}
+
+/* ===== FUNÇÃO HISTÓRICO COMPRADOR ===== */
+function atualizarHistoricoComprador(){
+  const historicoComprador = vendas.filter(v=>v.comprador==="Cliente Anônimo");
+  document.getElementById("historico").textContent = JSON.stringify(historicoComprador,null,2);
+}
+
+/* ===== FUNÇÃO ADICIONAR PRODUTO ===== */
+function adicionarProduto(){
+  const nome = document.getElementById("novo-nome").value;
+  const preco = Number(document.getElementById("novo-preco").value);
+  if(nome && preco>0){
+    produtos.push({nome,preco});
+    renderProdutos();
+    showAlerta(`Produto adicionado: ${nome}`);
+    document.getElementById("novo-nome").value="";
+    document.getElementById("novo-preco").value="";
+  }else{
+    alert("Preencha nome e preço válidos!");
+  }
+}
+
+/* ===== INTERFACE CLIENTE VISUALIZAÇÃO ===== */
+document.getElementById("login").insertAdjacentHTML("afterend",
+  `<button id="entrarCliente" onclick="entrarCliente()">Entrar como Cliente</button>`
+);
+
+function entrarCliente(){
+  document.getElementById("login").style.display="none";
+  document.getElementById("entrarCliente").style.display="none";
+  document.getElementById("interface-comprador").style.display="block";
+  renderProdutos();
+  atualizarHistoricoComprador();
+}
+</script>
 </body>
 </html>
