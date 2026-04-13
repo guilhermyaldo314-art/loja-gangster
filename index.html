@@ -2,202 +2,270 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Loja Gangster Profissional</title>
-<style>
-/* ===== RESET E ESTILO BASE ===== */
-body{margin:0;padding:0;font-family:Arial,sans-serif;background:#111;color:#fff;}
-h1,h2,h3{margin:0;padding:0;color:#f0a500;}
-header,section{padding:20px;}
-button{cursor:pointer;font-weight:bold;border:none;border-radius:5px;}
-button:hover{opacity:0.8;}
-input[type=text], input[type=number], input[type=password]{padding:5px;margin-right:5px;border-radius:5px;border:none;}
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UC13 Quiz Pro</title>
 
-/* ===== LAYOUT ===== */
-#interface-comprador,#interface-dev{display:none;}
-#produtos .produto{border:1px solid #fff;margin:10px 0;padding:15px;display:flex;justify-content:space-between;align-items:center;}
-#historico,#historico-global{background:#222;padding:10px;max-height:300px;overflow:auto;}
-#dashboard{margin-top:20px;border-top:2px solid #f0a500;padding-top:10px;}
-#login{padding:20px;}
-#alerta{position:fixed;top:10px;right:10px;background:#f0a500;color:#000;padding:10px 15px;border-radius:5px;display:none;font-weight:bold;box-shadow:0 0 10px #fff;}
-.historico-item{border-bottom:1px solid #444;padding:5px 0;margin-bottom:5px;}
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f172a, #020617);
+  color: white;
+}
+
+.app {
+  max-width: 400px;
+  margin: auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  text-align: center;
+  padding: 15px;
+  color: #38bdf8;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 12px;
+  background: rgba(56,189,248,0.2);
+  color: white;
+  backdrop-filter: blur(10px);
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #38bdf8;
+  color: black;
+  transform: scale(1.03);
+}
+
+.hidden {
+  display: none;
+}
+
+#answers button {
+  background: rgba(255,255,255,0.05);
+}
+
+.correct {
+  background: #22c55e !important;
+}
+
+.wrong {
+  background: #ef4444 !important;
+}
+
+.top-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #94a3b8;
+}
+
+#explanation {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #94a3b8;
+}
 </style>
 </head>
-<body>
 
+<body>
+<div class="app">
 <header>
-<h1>Loja Gangster Profissional</h1>
+<h1>UC13 Quiz</h1>
 </header>
 
-<!-- LOGIN PARA ACESSO DEV -->
-<div id="login">
-<label>Senha Dev:</label>
-<input type="password" id="senhaDev" placeholder="Digite a senha"/>
-<button onclick="logarDev()">Entrar</button>
+<main>
+<div id="level-select">
+<h2>Escolha o nível</h2>
+<button onclick="startQuiz('facil')">Fácil</button>
+<button onclick="startQuiz('medio')">Médio</button>
+<button onclick="startQuiz('dificil')">Difícil</button>
 </div>
 
-<!-- BOTÃO PARA CLIENTE -->
-<div id="entrarClienteContainer" style="padding:20px;">
-<button id="entrarCliente" onclick="entrarCliente()">Entrar como Cliente</button>
+<div id="quiz" class="hidden">
+<div class="top-info">
+<span id="progress"></span>
+<span id="score"></span>
 </div>
 
-<!-- INTERFACE COMPRADOR -->
-<section id="interface-comprador">
-<h2>Produtos Disponíveis</h2>
-<div id="produtos"></div>
-<h2>Meu Histórico</h2>
-<div id="historico"></div>
-</section>
+<h2 id="question"></h2>
+<div id="answers"></div>
+<p id="explanation"></p>
 
-<!-- INTERFACE DEV -->
-<section id="interface-dev">
-<h2>Dashboard do Dev</h2>
-<p>Total de vendas: <span id="total-vendas">0</span></p>
-<p>Total faturado: R$ <span id="total-faturado">0</span></p>
-<h3>Histórico Global</h3>
-<div id="historico-global"></div>
-<h3>Adicionar Produto</h3>
-<input type="text" id="novo-nome" placeholder="Nome do Produto"/>
-<input type="number" id="novo-preco" placeholder="Preço"/>
-<button onclick="adicionarProduto()">Adicionar Produto</button>
-</section>
-
-<div id="alerta"></div>
+<button id="nextBtn">Próxima</button>
+</div>
+</main>
+</div>
 
 <script>
-// ===== VARIÁVEIS =====
-let produtos = [
-  {nome:"Turbina", preco:5000},
-  {nome:"Produto B", preco:200},
-  {nome:"Produto C", preco:300},
-  {nome:"Produto D", preco:400}
-];
+const allQuestions = {
 
-let vendas = [];
+facil: [
+{ question: "O que é um app?", answers: ["Um jogo", "Um aplicativo", "Um celular", "Um site"], correct: 1, explanation: "App é um aplicativo para celular." },
+{ question: "Qual sistema é mais usado?", answers: ["iOS", "Android", "Windows", "Linux"], correct: 1, explanation: "Android é o mais usado." },
+{ question: "O que é celular?", answers: ["Carro", "Telefone portátil", "TV", "Jogo"], correct: 1, explanation: "Celular é portátil." },
+{ question: "O que é internet?", answers: ["Rede", "Jogo", "App", "Tela"], correct: 0, explanation: "Internet conecta dispositivos." },
+{ question: "O que é botão?", answers: ["Clicar", "Dormir", "Comer", "Andar"], correct: 0, explanation: "Botão é para interação." },
+{ question: "O que é tela inicial?", answers: ["Primeira tela", "Erro", "Última", "Código"], correct: 0, explanation: "É a primeira tela." },
+{ question: "App de mensagem serve para?", answers: ["Conversar", "Jogar", "Dormir", "Apagar"], correct: 0, explanation: "Serve para conversar." },
+{ question: "Quem cria apps?", answers: ["Usuário", "Dev", "Aluno", "Cliente"], correct: 1, explanation: "Dev cria apps." },
+{ question: "O que é clicar?", answers: ["Pressionar", "Dormir", "Comer", "Andar"], correct: 0, explanation: "Clicar é interagir." },
+{ question: "Tecnologia é?", answers: ["Ferramentas", "Comida", "Roupa", "Casa"], correct: 0, explanation: "Ajuda no dia a dia." }
+],
 
-// ===== FUNÇÃO DE ALERTA =====
-function showAlerta(msg){
-  const alerta = document.getElementById("alerta");
-  alerta.innerText = msg;
-  alerta.style.display = "block";
-  setTimeout(()=>{alerta.style.display="none";},2000);
+medio: [
+{ question: "O que é Kotlin?", answers: ["Sistema", "Linguagem", "App", "Banco"], correct: 1, explanation: "Linguagem Android." },
+{ question: "React Native é?", answers: ["Jogo", "Framework", "Sistema", "Celular"], correct: 1, explanation: "Framework mobile." },
+{ question: "Programação é?", answers: ["Criar código", "Dormir", "Jogar", "Assistir"], correct: 0, explanation: "Criar instruções." },
+{ question: "Java é?", answers: ["Comida", "Linguagem", "App", "Jogo"], correct: 1, explanation: "Linguagem." },
+{ question: "Android Studio é?", answers: ["Editor", "Jogo", "Celular", "App"], correct: 0, explanation: "Ferramenta dev." },
+{ question: "Interface é?", answers: ["Tela", "Erro", "Banco", "Código"], correct: 0, explanation: "Visual do app." },
+{ question: "Usuário é?", answers: ["Quem usa", "Quem cria", "Quem vende", "Quem compra"], correct: 0, explanation: "Quem usa." },
+{ question: "Sistema operacional?", answers: ["Controla", "Jogo", "App", "Tela"], correct: 0, explanation: "Controla o sistema." },
+{ question: "Código é?", answers: ["Instruções", "Erro", "Tela", "Botão"], correct: 0, explanation: "São comandos." },
+{ question: "Banco de dados?", answers: ["Armazena", "Apaga", "Tela", "Botão"], correct: 0, explanation: "Guarda dados." }
+],
+
+dificil: [
+{ question: "Híbrido é?", answers: ["Só Android", "Só iOS", "Vários sistemas", "Sem código"], correct: 2, explanation: "Funciona em vários." },
+{ question: "API é?", answers: ["Banco", "Sistema", "Conexão", "Tela"], correct: 2, explanation: "Conecta sistemas." },
+{ question: "Framework é?", answers: ["Base pronta", "Erro", "Tela", "App"], correct: 0, explanation: "Ajuda programar." },
+{ question: "UX é?", answers: ["Experiência", "Erro", "Banco", "Sistema"], correct: 0, explanation: "Experiência do usuário." },
+{ question: "UI é?", answers: ["Visual", "Erro", "Código", "Banco"], correct: 0, explanation: "Interface visual." },
+{ question: "Firebase?", answers: ["Banco online", "Jogo", "Celular", "Tela"], correct: 0, explanation: "Banco na nuvem." },
+{ question: "Deploy?", answers: ["Publicar", "Apagar", "Erro", "Código"], correct: 0, explanation: "Publicar app." },
+{ question: "Debug?", answers: ["Corrigir", "Criar erro", "Apagar", "Tela"], correct: 0, explanation: "Corrige erros." },
+{ question: "Responsivo?", answers: ["Adapta", "Erro", "Código", "Banco"], correct: 0, explanation: "Adapta à tela." },
+{ question: "Desempenho?", answers: ["Velocidade", "Erro", "Tela", "Banco"], correct: 0, explanation: "Rapidez do app." }
+]
+};
+
+let questions = [];
+let current = 0;
+let score = 0;
+
+const levelSelect = document.getElementById("level-select");
+const quiz = document.getElementById("quiz");
+
+const questionEl = document.getElementById("question");
+const answersEl = document.getElementById("answers");
+const explanationEl = document.getElementById("explanation");
+const nextBtn = document.getElementById("nextBtn");
+const progressEl = document.getElementById("progress");
+const scoreEl = document.getElementById("score");
+
+function startQuiz(level) {
+questions = allQuestions[level];
+current = 0;
+score = 0;
+
+levelSelect.classList.add("hidden");
+quiz.classList.remove("hidden");
+
+loadQuestion();
 }
 
-// ===== FUNÇÕES DE LOGIN =====
-function logarDev(){
-  const senha = document.getElementById("senhaDev").value;
-  if(senha==="gangster123"){ // senha dev
-    document.getElementById("login").style.display="none";
-    document.getElementById("entrarClienteContainer").style.display="none";
-    document.getElementById("interface-dev").style.display="block";
-    renderProdutos();
-    atualizarDashboard();
-  }else{
-    alert("Senha incorreta! Acesso negado.");
-    document.getElementById("senhaDev").value="";
-  }
+function loadQuestion() {
+explanationEl.textContent = "";
+nextBtn.style.display = "none";
+answersEl.innerHTML = "";
+
+const q = questions[current];
+
+questionEl.textContent = q.question;
+progressEl.textContent = `Pergunta ${current + 1}/${questions.length}`;
+scoreEl.textContent = `Pontos: ${score}`;
+
+q.answers.forEach((answer, index) => {
+const btn = document.createElement("button");
+btn.textContent = answer;
+
+btn.onclick = () => {
+if (index === q.correct) {
+btn.classList.add("correct");
+score++;
+explanationEl.textContent = "✅ Acertou! " + q.explanation;
+nextBtn.style.display = "block";
+} else {
+btn.classList.add("wrong");
+explanationEl.textContent = "❌ Errou! Voltando ao início...";
+
+document.querySelectorAll("#answers button").forEach(b => {
+b.disabled = true;
+});
+
+setTimeout(() => {
+current = 0;
+score = 0;
+loadQuestion();
+}, 1500);
+
+return;
 }
 
-function entrarCliente(){
-  document.getElementById("login").style.display="none";
-  document.getElementById("entrarClienteContainer").style.display="none";
-  document.getElementById("interface-comprador").style.display="block";
-  renderProdutos();
-  atualizarHistoricoComprador();
+document.querySelectorAll("#answers button").forEach(b => {
+b.disabled = true;
+});
+};
+
+answersEl.appendChild(btn);
+});
 }
 
-// ===== FUNÇÃO PARA RENDERIZAR PRODUTOS =====
-function renderProdutos(){
-  const div = document.getElementById("produtos");
-  div.innerHTML="";
-  produtos.forEach((p,i)=>{
-    const prodDiv = document.createElement("div");
-    prodDiv.className="produto";
-    prodDiv.innerHTML=`
-      <span>${p.nome} - R$ ${p.preco}</span>
-      <button onclick="comprarProduto(${i})">Comprar</button>
-    `;
-    div.appendChild(prodDiv);
-  });
+nextBtn.onclick = () => {
+current++;
+
+if (current < questions.length) {
+loadQuestion();
+} else {
+
+answersEl.innerHTML = "";
+nextBtn.style.display = "none";
+
+if (questions === allQuestions.facil) {
+questionEl.textContent = "✅ Nível Fácil concluído!";
+explanationEl.textContent = `Pontuação: ${score}/10`;
+
+const btn = document.createElement("button");
+btn.textContent = "➡ Ir para nível Médio";
+btn.onclick = () => startQuiz("medio");
+
+answersEl.appendChild(btn);
 }
 
-// ===== FUNÇÃO COMPRAR =====
-function comprarProduto(indice){
-  const produto = produtos[indice];
-  const venda = {
-    produto: produto.nome,
-    preco: produto.preco,
-    data: new Date().toLocaleString(),
-    comprador: "Cliente Anônimo"
-  };
-  vendas.push(venda);
-  showAlerta(`Compra realizada: ${produto.nome}`);
-  atualizarDashboard();
-  atualizarHistoricoComprador();
-  atualizarHistoricoDev();
+else if (questions === allQuestions.medio) {
+questionEl.textContent = "🔥 Nível Médio concluído!";
+explanationEl.textContent = `Pontuação: ${score}/10`;
+
+const btn = document.createElement("button");
+btn.textContent = "➡ Ir para nível Difícil";
+btn.onclick = () => startQuiz("dificil");
+
+answersEl.appendChild(btn);
 }
 
-// ===== FUNÇÕES DE DASHBOARD =====
-function atualizarDashboard(){
-  document.getElementById("total-vendas").innerText = vendas.length;
-  const total = vendas.reduce((soma,v)=>soma+v.preco,0);
-  document.getElementById("total-faturado").innerText = total;
-  atualizarHistoricoDev();
-}
+else {
+questionEl.textContent = "🏆 PARABÉNS!";
+explanationEl.textContent = "Você zerou TODOS os níveis!";
 
-// ===== FUNÇÃO HISTÓRICO COMPRADOR =====
-function atualizarHistoricoComprador(){
-  const historicoDiv = document.getElementById("historico");
-  historicoDiv.innerHTML="";
-  const historicoComprador = vendas.filter(v => v.comprador==="Cliente Anônimo");
-  historicoComprador.forEach(v=>{
-    const div = document.createElement("div");
-    div.className="historico-item";
-    div.innerHTML=`
-      <strong>Produto:</strong> ${v.produto} <br>
-      <strong>Preço:</strong> R$ ${v.preco} <br>
-      <strong>Data:</strong> ${v.data}
-    `;
-    historicoDiv.appendChild(div);
-  });
-}
+const btn = document.createElement("button");
+btn.textContent = "🔄 Jogar novamente";
+btn.onclick = () => location.reload();
 
-// ===== FUNÇÃO HISTÓRICO DEV =====
-function atualizarHistoricoDev(){
-  const div = document.getElementById("historico-global");
-  div.innerHTML="";
-  vendas.forEach(v=>{
-    const item = document.createElement("div");
-    item.className="historico-item";
-    item.innerHTML=`
-      <strong>Produto:</strong> ${v.produto} <br>
-      <strong>Preço:</strong> R$ ${v.preco} <br>
-      <strong>Data:</strong> ${v.data} <br>
-      <strong>Comprador:</strong> ${v.comprador}
-    `;
-    div.appendChild(item);
-  });
+answersEl.appendChild(btn);
 }
-
-// ===== FUNÇÃO ADICIONAR PRODUTO =====
-function adicionarProduto(){
-  const nome = document.getElementById("novo-nome").value;
-  const preco = Number(document.getElementById("novo-preco").value);
-  if(nome && preco>0){
-    produtos.push({nome,preco});
-    renderProdutos();
-    showAlerta(`Produto adicionado: ${nome}`);
-    document.getElementById("novo-nome").value="";
-    document.getElementById("novo-preco").value="";
-  }else{
-    alert("Preencha nome e preço válidos!");
-  }
 }
-
-// ===== INICIALIZAÇÃO =====
-renderProdutos();
-atualizarHistoricoComprador();
-atualizarHistoricoDev();
+};
 </script>
-
 </body>
 </html>
